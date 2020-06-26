@@ -26,8 +26,11 @@ SECRET_KEY = 'g2fgg#c2f(50p07c=b--mhrwmvopz+*j172xjw(!hsb78_4=4v'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
-
+# hosts文件地址:
+# linux: /etc/hosts
+# windows: C:\Windows\System32\drivers\etc
+# 指定运行访问Django的域名, 我们可以直接指定通配符, 允许所有的域名或者IP访问Django
+ALLOWED_HOSTS = ['*']
 
 # Application definition
 

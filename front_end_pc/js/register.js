@@ -46,6 +46,7 @@ var vm = new Vue({
         check_username: function () {
             var re = /^[a-zA-Z0-9_-]{5,20}$/;
             var re2 = /^[0-9]+$/;
+            // http://www.meiduo.site:8080/usernames/(参数)/count/)
             if (re.test(this.username) && !re2.test(this.username)) {
                 this.error_name = false;
             } else {

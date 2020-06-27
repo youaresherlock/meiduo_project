@@ -41,18 +41,31 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    # https://github.com/adamchainz/django-cors-headers
+    'corsheaders',  # 注册跨域的子应用
     'apps.users',  # 用户模块
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+# 允许跨域的白名单
+CORS_ORIGIN_WHITELIST = [
+    "http://www.meiduo.site:8080",
+    "http://127.0.0.1:8080", 
+    'http://localhost:8080',
+]
+
+# 允许跨域携带cookie
+CORS_ALLOW_CREDENTIALS = True
 
 ROOT_URLCONF = 'meiduo_mall.urls'
 

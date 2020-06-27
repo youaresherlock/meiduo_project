@@ -18,9 +18,10 @@ from django.urls import path, include
 
 # 总路由中注册路由转换器
 from django.urls.converters import register_converter
-from meiduo_mall.utils.converters import UsernameConverter
+from meiduo_mall.utils.converters import UsernameConverter, MobileConverter
 
 register_converter(UsernameConverter, 'username')
+register_converter(MobileConverter, 'mobile')
 
 urlpatterns = [
     path('admin/', admin.site.urls),

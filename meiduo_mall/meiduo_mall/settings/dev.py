@@ -36,7 +36,7 @@ ALLOWED_HOSTS = ['*']
 
 INSTALLED_APPS = [
     'django.contrib.admin',
-    'django.contrib.auth',
+    'django.contrib.auth',  # Django默认的用户认证系统: 它里面处理完了根用户相关的一切操作
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
@@ -197,3 +197,6 @@ LOGGING = {
     }
 }
 
+# 指定Django程序默认的用户模型类为自定义的模型类
+# AUTH_USER_MODEL = 'auth.User'  # Django默认的
+AUTH_USER_MODEL = 'users.User'

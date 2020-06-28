@@ -105,12 +105,12 @@ class RegisterView(View):
         except Exception as e:
             logger.error(e)
             return JsonResponse({'code': 400,
-                                 'errmsg': '保存到数据库出错'})
+                                 'errmsg': '注册失败'})
         # 实现状态保持
         login(request, user)
 
         return JsonResponse({'code': 0,
-                             'errmsg': 'ok'})
+                             'errmsg': '注册成功'})
 
         # 实现状态保持, 注册成功立即登录成功
         # 响应结果

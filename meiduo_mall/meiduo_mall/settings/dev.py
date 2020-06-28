@@ -44,14 +44,20 @@ INSTALLED_APPS = [
     # https://github.com/adamchainz/django-cors-headers
     'corsheaders',  # 注册跨域的子应用
     'apps.users',  # 用户模块
+    'apps.verifications',  # 验证模块
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    # 在process_response中实现
+    # 将session数据写入到session后端 request.session.save()
+    # 将session_key写入到浏览器的cookie中 response.set_cookie("sessionid":"session_key")
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
+    # 在process_request中实现
+    # 从cookie中的到session_key, 再取session中的user_id
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -155,6 +161,13 @@ CACHES = {
     "session": {  # 希望将session存储在redis的1号库
         "BACKEND": "django_redis.cache.RedisCache",
         "LOCATION": "redis://127.0.0.1:6379/1",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    },
+    "verify_code": {  # 图像验证码 uuid: image_code
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/2",
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         }

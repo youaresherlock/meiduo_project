@@ -6,6 +6,7 @@ from django.contrib.auth import login
 from django.http import JsonResponse
 from django.views import View
 from apps.users.models import User
+from django_redis import get_redis_connection
 
 # Create your views here.
 
@@ -68,6 +69,8 @@ class RegisterView(View):
         password = json_dict.get('password')
         password2 = json_dict.get('password2')
         mobile = json_dict.get('mobile')
+        # 提取短信验证码参数
+        sms_code_client = json_dict.get('sms_code')
         allow = json_dict.get('allow')
         # 校验参数
         # 判断是否缺少必传参数
@@ -97,6 +100,15 @@ class RegisterView(View):
         if not allow:
             return JsonResponse({'code': 400,
                                       'errmsg': 'allow格式有误'})
+        # 从redis取出短信验证码并判断是否过期,然后与用户输入的验证码进行对比
+        redis_conn = get_redis_connection('verify_code')
+        sms_code_server = redis_conn.get('sms_%s' % mobile)
+        if not sms_code_server:
+            return JsonResponse({'code': 400,
+                                 'errmsg': '短信验证码过期'})
+        if sms_code_client != sms_code_server.decode():
+            return JsonResponse({'code': 400,
+                                 'errmsg': '验证码有误'})
         # 实现核心逻辑: 保存注册数据到用户数据表
         try:
             user = User.objects.create_user(username=username,
@@ -112,8 +124,8 @@ class RegisterView(View):
         return JsonResponse({'code': 0,
                              'errmsg': '注册成功'})
 
-        # 实现状态保持, 注册成功立即登录成功
-        # 响应结果
+
+
 
 
 

@@ -5,7 +5,7 @@ from django.http import HttpResponse, JsonResponse
 from django.views import View
 from django_redis import get_redis_connection
 from apps.verifications.libs.captcha.captcha import captcha
-from apps.verifications.libs.yuntongxun.ccp_sms import CCP
+from celery_tasks.sms.tasks import ccp_send_sms_code
 # Create your views here.
 
 # 日志输出器
@@ -33,7 +33,6 @@ class SMSCodeView(View):
             return JsonResponse({'code': 400,
                                  'errmsg': '缺少必传参数'})
         # 3. 提取图形验证码
-        redis_conn = get_redis_connection('verify_code')
         image_code_server = redis_conn.get('img_%s' % uuid)
         if image_code_server is None:
             # 图形验证码过期或者不存在
@@ -64,8 +63,8 @@ class SMSCodeView(View):
         pl.setex('send_flag_%s' % mobile, 60, 1)
         pl.execute()
 
-        # 发送短信验证码
-        CCP().send_template_sms(mobile, [sms_code, 5], 1)
+        # 异步发送短信验证码 发送短信和响应分开执行
+        ccp_send_sms_code.delay(mobile, sms_code)
         return JsonResponse({'code': 0,
                              'errmsg': '发送短信成功'})
 

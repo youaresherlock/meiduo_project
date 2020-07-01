@@ -57,18 +57,18 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     # 在process_request中实现
-    # 从cookie中的到session_key, 再取session中的user_id
+    # 从cookie中得到session_key, 再取session中的user_id
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
 # 允许跨域的白名单
-CORS_ORIGIN_WHITELIST = [
+CORS_ORIGIN_WHITELIST = (
     "http://www.meiduo.site:8080",
     "http://127.0.0.1:8080", 
     'http://localhost:8080',
-]
+)
 
 # 允许跨域携带cookie
 CORS_ALLOW_CREDENTIALS = True

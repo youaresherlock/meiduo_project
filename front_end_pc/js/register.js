@@ -181,6 +181,7 @@ var vm = new Vue({
                         }, 1000, 60)
                     } else {
                         alert(response.data.errmsg);
+                        this.sending_flag = false; // 代表短信验证没有发送
                     }
                 })
                 .catch(error => {

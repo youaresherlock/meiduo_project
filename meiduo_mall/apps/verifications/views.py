@@ -1,6 +1,5 @@
 import random
 import logging
-from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 from django.views import View
 from django_redis import get_redis_connection

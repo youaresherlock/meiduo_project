@@ -1,17 +1,95 @@
 import re
 import json
 import logging
-from django.shortcuts import render
-from django.contrib.auth import login
+from django.contrib.auth import login, logout, authenticate
 from django.http import JsonResponse
 from django.views import View
 from apps.users.models import User
 from django_redis import get_redis_connection
-
+from meiduo_mall.utils.views import LoginRequiredJSONMixin
 # Create your views here.
 
 # 日志输出器
 logger = logging.getLogger('django')
+
+
+class UserInfoView(LoginRequiredJSONMixin, View):
+    """用户中心
+    GET /info/
+    """
+
+    def get(self, request):
+        data_dict = {
+            'code': 0,
+            'errmsg': 'ok',
+            'info_data': {
+                'username': '',
+                'mobile': '',
+                'email': '',
+                'email_active': ''
+            }
+        }
+        return JsonResponse(data_dict)
+
+
+class LogoutView(View):
+    """定义退出登录的接口"""
+
+    def delete(self, request):
+        """实现退出登录逻辑"""
+        # 清理session
+        logout(request)
+
+        response = JsonResponse({'code': 0, 'errmsg': 'ok'})
+        response.delete_cookie('username')
+        return response
+
+
+class LoginView(View):
+    """用户登录
+    GET /login/
+    """
+
+    def post(self, request):
+        """实现用户登录功能"""
+        json_dict = json.loads(request.body.decode())
+        account = json_dict.get('username')
+        password = json_dict.get('password')
+        remembered = json_dict.get('remembered')
+        # 校验参数
+        if not all([account, password]):
+            return JsonResponse({'code': 400, 'errmsg': '缺少必传参数'})
+        # if not re.math(r'^[a-zA-Z0-9_-]{5,20}$', username):
+        #     return JsonResponse({'code': 400, 'errmsg': '参数username格式错误'})
+        if not re.match(r'^[0-9A-Za-z]{8,20}$', password):
+            return JsonResponse({'code': 400, 'errmsg': '参数password格式错误'})
+
+        # 实现多账号登录
+        if re.match(r'^1[3-9]\d{9}$', account):
+            User.USERNAME_FIELD = "mobile"
+        else:
+            User.USERNAME_FIELD = "username"
+        """
+        认证登录用户核心思想: 先使用用户名作为条件去用户表查询该记录是否存在,如果该用户名对应的记录存在,再去校验密码是否正确
+        Django的用户认证系统默认已经封装好了这个逻辑
+        """
+        user = authenticate(request=request, username=account, password=password)
+        if user is None:
+            return JsonResponse({'code': 400, 'errmsg': '用户名或者密码错误'})
+        # 实现状态保持
+        login(request, user)
+
+        # 记住登录用来指定状态保持的时间周期
+        if remembered:
+            # 如果记住, 设置为两周有效
+            request.session.set_expiry(None)
+        else:
+            # 如果没有记住, 关闭立刻失效
+            request.session.set_expiry(0)
+        # 响应结果
+        response = JsonResponse({'code': 0, 'errmsg': 'ok'})
+        response.set_cookie('username', user.username, max_age=14 * 24 * 3600)
+        return response
 
 
 class UsernameCountView(View):
@@ -121,8 +199,13 @@ class RegisterView(View):
         # 实现状态保持
         login(request, user)
 
-        return JsonResponse({'code': 0,
+        response = JsonResponse({'code': 0,
                              'errmsg': '注册成功'})
+
+        # 在注册成功之后,将用户名写入到cookie,将来会在页面右上角展示
+        response.set_cookie('username', user.username, max_age=14*24*3600)
+
+        return response
 
 
 

@@ -79,16 +79,17 @@ class LoginView(View):
         # 实现状态保持
         login(request, user)
 
+        response = JsonResponse({'code': 0, 'errmsg': 'ok'})
         # 记住登录用来指定状态保持的时间周期
         if remembered:
             # 如果记住, 设置为两周有效
             request.session.set_expiry(None)
+            response.set_cookie('username', user.username, max_age=14 * 24 * 3600)
         else:
             # 如果没有记住, 关闭立刻失效
             request.session.set_expiry(0)
+            response.set_cookie('username', user.username)
         # 响应结果
-        response = JsonResponse({'code': 0, 'errmsg': 'ok'})
-        response.set_cookie('username', user.username, max_age=14 * 24 * 3600)
         return response
 
 

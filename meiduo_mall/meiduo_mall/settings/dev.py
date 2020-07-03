@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'corsheaders',  # 注册跨域的子应用
     'apps.users',  # 用户模块
     'apps.verifications',  # 验证模块
+    'apps.oauth',  # 第三方登录
 ]
 
 MIDDLEWARE = [
@@ -55,7 +56,7 @@ MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
+    # 'django.middleware.csrf.CsrfViewMiddleware',
     # 在process_request中实现
     # 从cookie中得到session_key, 再取session中的user_id
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -226,3 +227,23 @@ LOGGING = {
 # 指定Django程序默认的用户模型类为自定义的模型类
 # AUTH_USER_MODEL = 'auth.User'  # Django默认的
 AUTH_USER_MODEL = 'users.User'
+
+# QQ登录参数
+# 我们申请的 客户端id appyid
+QQ_CLIENT_ID = '101474184'
+# 我们申请的 客户端秘钥appkey
+QQ_CLIENT_SECRET = 'c6ce949e04e12ecc909ae6a8b09b637c'
+# 我们申请时添加的: 登录成功后回调的路径
+QQ_REDIRECT_URI = 'http://www.meiduo.site:8080/oauth_callback.html'
+
+
+
+
+
+
+
+
+
+
+
+

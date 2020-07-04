@@ -184,7 +184,7 @@ SESSION_CACHE_ALIAS = "session"
 
 # 配置工程日志
 LOGGING = {
-    'version': 1,
+    'version': 1,  # 指明dictConfig的版本
     'disable_existing_loggers': False,  # 是否禁用已经存在的日志器
     'formatters': {  # 日志信息显示的格式
         'verbose': {
@@ -199,6 +199,7 @@ LOGGING = {
             '()': 'django.utils.log.RequireDebugTrue',
         },
     },
+    # handlers: 用来定义具体处理日志的方式,可以定义多种
     'handlers': {  # 日志处理方法
         'console': {  # 向终端中输出日志
             'level': 'INFO',
@@ -210,9 +211,9 @@ LOGGING = {
             'level': 'INFO',
             'class': 'logging.handlers.RotatingFileHandler',
             'filename': os.path.join(BASE_DIR, 'logs/meiduo.log'),  # 日志文件的位置
-            'maxBytes': 300 * 1024 * 1024,
-            'backupCount': 10,
-            'formatter': 'verbose'
+            'maxBytes': 300 * 1024 * 1024,  # 文件大小300M
+            'backupCount': 10,  # 备份份数
+            'formatter': 'verbose'  # 使用哪种formatters日志格式
         },
     },
     'loggers': {  # 日志器

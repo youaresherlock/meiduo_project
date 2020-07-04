@@ -2,7 +2,7 @@ import re
 import json
 import logging
 from django.contrib.auth import login, logout, authenticate
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseRedirect
 from django.views import View
 from apps.users.models import User
 from django_redis import get_redis_connection

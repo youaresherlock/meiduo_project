@@ -7,10 +7,67 @@ from django.views import View
 from apps.users.models import User
 from django_redis import get_redis_connection
 from meiduo_mall.utils.views import LoginRequiredJSONMixin
+from celery_tasks.email.tasks import send_verify_email
+from apps.users.utils import generate_email_verify_url
+from apps.users.utils import check_email_verify_url
 # Create your views here.
 
 # 日志输出器
 logger = logging.getLogger('django')
+
+
+class EmailActiveView(View):
+    """认证激活邮箱
+    PUT /emails/verification/
+    """
+    def put(self, request):
+        """实现邮箱验证逻辑"""
+        token = request.GET.get('token')
+        if not token:
+            return JsonResponse({'code': 400, 'errmsg': '缺少token'})
+
+        user = check_email_verify_url(token)
+        if not user:
+            return JsonResponse({'code': 400, 'errmsg': '无效的token'})
+
+        try:
+            user.email_active = True
+            user.save()
+        except Exception as e:
+            logger.error(e)
+            return JsonResponse({'code': 400, 'errmsg': '激活邮箱失败'})
+
+        return JsonResponse({'code': 0, 'errmsg': 'ok'})
+
+
+class EmailView(View):
+    """添加邮箱
+    PUT /emails/
+    """
+    def put(self, request):
+        """实现添加邮箱的逻辑"""
+        json_dict = json.loads(request.body.decode())
+        email = json_dict.get('email')
+
+        if not email:
+            return JsonResponse({'code': 400, 'errmsg': '缺少必传参数'})
+        if not re.match(r'^[a-z0-9][\w\.\-]*@[a-z0-9\-]+(\.[a-z]{2,5}){1,2}$', email):
+            return JsonResponse({'code': 400, 'errmsg': '邮箱格式错误'})
+        
+        try:
+            request.user.email = email 
+            request.user.save() 
+        except Exception as e:
+            logger.error(e)
+            return JsonResponse({'code': 400, 
+                                 'errmsg': '添加邮箱失败'})
+        email = '<' + email + '>'
+        verify_url = generate_email_verify_url(request.user)
+        # 发送邮箱的验证激活邮件
+        send_verify_email.delay(email, verify_url)
+        
+        return JsonResponse({'code': 0, 
+                             'errmsg': '添加邮箱成功'})
 
 
 class UserInfoView(LoginRequiredJSONMixin, View):
@@ -19,14 +76,33 @@ class UserInfoView(LoginRequiredJSONMixin, View):
     """
 
     def get(self, request):
+        """实现用户基本信息展示
+        由于我们在该接口中,判断了用户是否是登录用户
+        所以能够进入到该接口的请求,一定是登录用户发送的
+        所以request.user里面获取的用户信息一定是当前登录的用户信息
+        如果不理解查看AuthenticationMiddleware的源码,里面都封装好的逻辑
+        重要的技巧:
+            如果该接口只有登录用户可以访问,那么在接口内部可以直接使用request.user
+        :param request:
+        :return:
+        """
+        # username = request.COOKIES.get('username')
+        # print(username)
+        # if not username:
+        #     return JsonResponse({'code': 400, 'errmsg': '用户名不存在'})
+        # try:
+        #     user = User.objects.get(username=username)
+        # except Exception:
+        #     return JsonResponse({'code': 400, 'errmsg': '用户不存在'})
+
         data_dict = {
             'code': 0,
             'errmsg': 'ok',
             'info_data': {
-                'username': '',
-                'mobile': '',
-                'email': '',
-                'email_active': ''
+                'username': request.user.username,
+                'mobile': request.user.mobile,
+                'email': request.user.email,
+                'email_active': request.user.email_active
             }
         }
         return JsonResponse(data_dict)
@@ -180,14 +256,14 @@ class RegisterView(View):
             return JsonResponse({'code': 400,
                                       'errmsg': 'allow格式有误'})
         # 从redis取出短信验证码并判断是否过期,然后与用户输入的验证码进行对比
-        redis_conn = get_redis_connection('verify_code')
-        sms_code_server = redis_conn.get('sms_%s' % mobile)
-        if not sms_code_server:
-            return JsonResponse({'code': 400,
-                                 'errmsg': '短信验证码过期'})
-        if sms_code_client != sms_code_server.decode():
-            return JsonResponse({'code': 400,
-                                 'errmsg': '验证码有误'})
+        # redis_conn = get_redis_connection('verify_code')
+        # sms_code_server = redis_conn.get('sms_%s' % mobile)
+        # if not sms_code_server:
+        #     return JsonResponse({'code': 400,
+        #                          'errmsg': '短信验证码过期'})
+        # if sms_code_client != sms_code_server.decode():
+        #     return JsonResponse({'code': 400,
+        #                          'errmsg': '验证码有误'})
         # 实现核心逻辑: 保存注册数据到用户数据表
         try:
             user = User.objects.create_user(username=username,

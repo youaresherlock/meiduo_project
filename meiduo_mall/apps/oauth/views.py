@@ -25,7 +25,6 @@ class QQURLView(View):
     def get(self, request):
         # client端的状态值
         state = request.GET.get('next', '/')
-        print(state)
         # 创建OAuthQQ对象
         oauth = OAuthQQ(client_id=settings.QQ_CLIENT_ID,
                         client_secret=settings.QQ_CLIENT_SECRET,

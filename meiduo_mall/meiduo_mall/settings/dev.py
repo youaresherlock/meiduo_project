@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'apps.users',  # 用户模块
     'apps.verifications',  # 验证模块
     'apps.oauth',  # 第三方登录
+    'apps.areas',  # 省市区三级联动
 ]
 
 MIDDLEWARE = [
@@ -166,7 +167,7 @@ CACHES = {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         }
     },
-    "verify_code": {  # 图像验证码 uuid: image_code
+    "verify_code": {  # 图像验证码, 短信验证码 uuid: image_code
         "BACKEND": "django_redis.cache.RedisCache",
         "LOCATION": "redis://127.0.0.1:6379/2",
         "OPTIONS": {

@@ -16,6 +16,15 @@ from apps.users.utils import check_email_verify_url
 logger = logging.getLogger('django')
 
 
+class CreateAddressView(LoginRequiredJSONMixin, View):
+    """新增地址
+    POST /address/create/
+    """
+    def post(self, request):
+        """实现新增地址的逻辑"""
+        pass
+
+
 class EmailActiveView(View):
     """认证激活邮箱
     PUT /emails/verification/

@@ -227,7 +227,7 @@ var vm = new Vue({
             })
                 .then(response => {
                     this.addresses = response.data.addresses;
-                    // this.limit = response.data.limit;
+                    this.limit = response.data.limit;
                     this.default_address_id = response.data.default_address_id;
                 })
                 .catch(error => {

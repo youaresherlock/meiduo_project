@@ -47,6 +47,12 @@ INSTALLED_APPS = [
     'apps.verifications',  # 验证模块
     'apps.oauth',  # 第三方登录
     'apps.areas',  # 省市区三级联动
+    'apps.contents',
+    'apps.goods',  # 商品子应用
+    # 定时任务
+    'django_crontab',
+    # 全文检索
+    'haystack',
 ]
 
 MIDDLEWARE = [
@@ -256,6 +262,32 @@ EMAIL_FROM = '煤老板<itcast888888@163.com>'
 # 邮箱验证链接
 EMAIL_VERIFY_URL = 'http://www.meiduo.site:8080/success_verify_email.html?token='
 
+# 定时任务
+CRONJOBS = [
+    # 每1分钟生成一次首页静态文件
+    ('*/1 * * * *', 'apps.contents.crons.generate_static_index_html', '>> ' + os.path.join(BASE_DIR, 'logs/crontab.log'))
+]
+
+# 解决 crontab 中文问题
+CRONTAB_COMMAND_PREFIX = 'LANG_ALL=zh_cn.UTF-8'
+
+# 指定自定义的文件存储类
+DEFAULT_FILE_STORAGE = 'meiduo_mall.utils.fastdfs.fdfs_storage.FastDFSStorage'
+
+# 指定FastDFS服务器的位置
+FDFS_URL = 'http://www.meiduo.site:8888/'
+
+# 配置Haystack为搜索引擎后端
+HAYSTACK_CONNECTIONS = {
+    'default': {
+        'ENGINE': 'haystack.backends.elasticsearch_backend.ElasticsearchSearchEngine',
+        'URL': 'http://193.112.48.106:9200/',  # Elasticsearch服务器ip地址，端口号固定为9200
+        'INDEX_NAME': 'meiduo_mall',  # Elasticsearch建立的索引库的名称
+    },
+}
+
+# 当添加、修改、删除数据时，自动生成索引
+HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.RealtimeSignalProcessor'
 
 
 

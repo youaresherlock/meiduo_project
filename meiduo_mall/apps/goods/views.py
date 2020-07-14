@@ -5,8 +5,34 @@ from apps.goods.models import SKU
 from django.http import JsonResponse
 from django.core.paginator import Paginator, EmptyPage
 from apps.goods.utils import get_breadcrumb
+from haystack.views import SearchView
 
 # Create your views here.
+
+
+class MySearchView(SearchView):
+    """重写SearchView类
+    GET /search/
+    """
+    def create_response(self):
+        # 根据前端所传入的page_size进行分页
+        # 如果不指定,那么会遵从全局设置
+        self.results_per_page = int(self.request.GET.get('page_size'))
+        # 获取检索到的数据
+        context = self.get_context()
+        results = context['page'].object_list
+        data_list = []
+        for result in results:
+            data_list.append({
+                'id': result.object.id,
+                'name': result.object.name,
+                'price': result.object.price,
+                'default_image_url': result.objects.default_image.url,
+                'searchkey': context.get('query'),
+                'page_size': context['page'].paginator.num_pages,
+                'count': context['page'].paginator.count
+            })
+            return JsonResponse(data_list, safe=False)
 
 
 class HotGoodsView(View):

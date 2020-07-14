@@ -11,10 +11,69 @@ from meiduo_mall.utils.views import LoginRequiredJSONMixin
 from celery_tasks.email.tasks import send_verify_email
 from apps.users.utils import generate_email_verify_url
 from apps.users.utils import check_email_verify_url
+from apps.goods.models import SKU
 # Create your views here.
 
 # 日志输出器
 logger = logging.getLogger('django')
+
+
+class UserBrowseHistory(LoginRequiredJSONMixin, View):
+    """用户浏览记录
+    POST /browse_histories/
+    GET /browse_histories/
+    """
+    def get(self, request):
+        redis_conn = get_redis_connection('history')
+        sku_ids = redis_conn.lrange('history_%s' % request.user.id, 0, -1)
+
+        # in: 查询指定范围的数据 这种方法sku_model_list是乱序,不符合需求的
+        # 当使用filter()搭配in去查询指定范围的数据时,默认会根据主键字段有小到大排序 
+        # sku_model_list = SKU.objects.filter(id__in=sku_ids)
+        # skus = []
+        # for sku in sku_model_list:
+        #     skus.append({
+        #         'id': sku.id,
+        #         'name': sku.name,
+        #         'default_image_url': sku.default_image.url,
+        #         'price': sku.price
+        #     })
+        skus = []
+        for sku_id in sku_ids:
+            sku = SKU.objects.get(id=sku_id)
+            skus.append({
+                'id': sku.id,
+                'name': sku.name,
+                'default_image_url': sku.default_image.url,
+                'price': sku.price
+            })
+
+        return JsonResponse({'code': 0, 'errmsg': 'ok', 'skus': skus})
+
+    def post(self, request):
+        """保存用户浏览记录"""
+        json_dict = json.loads(request.body.decode())
+        sku_id = json_dict.get('sku_id')
+
+        # 校验参数: 判断sku_id是否存在
+        try:
+            SKU.objects.get(id=sku_id)
+        except SKU.DoesNotExist:
+            return JsonResponse({'code': 400, 'errmsg': 'sku不存在'})
+
+        redis_conn = get_redis_connection('history')
+        pl = redis_conn.pipeline()
+        user_id = request.user.id
+        # 去重0代表去除所有的sku_id
+        pl.lrem('history_%s' % user_id, 0, sku_id)
+        # 再存储
+        pl.lpush('history_%s' % user_id, sku_id)
+        # 最后截取,只保留5个
+        pl.ltrim('history_%s' % user_id, 0, 4)
+        # 执行管道
+        pl.execute()
+
+        return JsonResponse({'code': 0, 'errmsg': 'ok'})
 
 
 class ChangePasswordView(LoginRequiredJSONMixin, View):

@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'apps.areas',  # 省市区三级联动
     'apps.contents',
     'apps.goods',  # 商品子应用
+    'apps.carts',  # 购物车
     # 定时任务
     'django_crontab',
     # 全文检索
@@ -183,6 +184,13 @@ CACHES = {
     "history": {  # 用户浏览记录
         "BACKEND": "django_redis.cache.RedisCache",
         "LOCATION": "redis://127.0.0.1:6379/3",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    },
+    "carts": {  # 用户购物车
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/5",
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         }

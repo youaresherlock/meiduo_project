@@ -28,7 +28,7 @@ class UserBrowseHistory(LoginRequiredJSONMixin, View):
         sku_ids = redis_conn.lrange('history_%s' % request.user.id, 0, -1)
 
         # in: 查询指定范围的数据 这种方法sku_model_list是乱序,不符合需求的
-        # 当使用filter()搭配in去查询指定范围的数据时,默认会根据主键字段有小到大排序 
+        # 当使用filter()搭配in去查询指定范围的数据时,默认会根据主键字段有小到大排序
         # sku_model_list = SKU.objects.filter(id__in=sku_ids)
         # skus = []
         # for sku in sku_model_list:

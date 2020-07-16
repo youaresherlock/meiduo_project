@@ -11,7 +11,7 @@ from apps.users.models import User
 from django_redis import get_redis_connection
 from itsdangerous import TimedJSONWebSignatureSerializer
 from apps.oauth.utils import generate_access_token_openid, check_access_token_openid
-
+from apps.carts.utils import merge_cart_cookie_to_redis
 # 日志输出器
 logger = logging.getLogger('django')
 
@@ -76,6 +76,9 @@ class QQUserView(View):
             login(request, user)
             response = JsonResponse({'code': 0, 'errmsg': 'ok'})
             response.set_cookie('username', user.username)
+
+            # 合并购物车
+            response = merge_cart_cookie_to_redis(request, request.user, response)
             return response
 
     def post(self, request):
@@ -138,6 +141,8 @@ class QQUserView(View):
         response.set_cookie('username',
                             user.username,
                             max_age=3600 * 24 * 14)
+        # 合并购物车
+        response = merge_cart_cookie_to_redis(request, request.user, response)
         return response
 
 

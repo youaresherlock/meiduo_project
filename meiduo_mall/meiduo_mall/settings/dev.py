@@ -183,7 +183,7 @@ CACHES = {
     },
     "history": {  # 用户浏览记录
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://127.0.0.1:6379/3",
+        "LOCATION": "redis://127.0.0.1:6379/4",
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         }
@@ -290,7 +290,7 @@ CRONTAB_COMMAND_PREFIX = 'LANG_ALL=zh_cn.UTF-8'
 DEFAULT_FILE_STORAGE = 'meiduo_mall.utils.fastdfs.fdfs_storage.FastDFSStorage'
 
 # 指定FastDFS服务器的位置
-FDFS_URL = 'http://www.meiduo.site:8888/'
+FDFS_URL = 'http://193.112.48.106:8888/'
 
 # 配置Haystack为搜索引擎后端
 HAYSTACK_CONNECTIONS = {

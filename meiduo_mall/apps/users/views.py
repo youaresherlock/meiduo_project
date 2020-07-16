@@ -12,6 +12,7 @@ from celery_tasks.email.tasks import send_verify_email
 from apps.users.utils import generate_email_verify_url
 from apps.users.utils import check_email_verify_url
 from apps.goods.models import SKU
+from apps.carts.utils import merge_cart_cookie_to_redis
 # Create your views here.
 
 # 日志输出器
@@ -486,6 +487,10 @@ class LoginView(View):
             request.session.set_expiry(0)
             response.set_cookie('username', user.username)
         # 响应结果
+
+        # 合并购物车
+        response = merge_cart_cookie_to_redis(request, request.user, response)
+
         return response
 
 

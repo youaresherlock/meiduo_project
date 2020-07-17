@@ -14,6 +14,40 @@ from django_redis import get_redis_connection
 logger = logging.getLogger('django')
 
 
+class CartsSimpleView(View):
+    """简单展示购物车"""
+    def get(self, request):
+        user = request.user
+        if user.is_authenticated:
+            redis_conn = get_redis_connection('carts')
+            item_dict = redis_conn.hgetall('carts_%s' % user.id)
+            cart_selected = redis_conn.smembers('selected_%s' % user.id)
+            cart_dict = {}
+            for sku_id, count in item_dict.items():
+                cart_dict[int(sku_id)] = {
+                    'count': int(count),
+                    'selected': sku_id in cart_selected
+                }
+        else:
+            cookie_cart = request.COOKIES.get('carts')
+            if cookie_cart:
+                cart_dict = pickle.loads(base64.b64decode(cookie_cart))
+            else:
+                cart_dict = {}
+        cart_skus = []
+        sku_ids = cart_dict.keys()
+        skus = SKU.objects.filter(id__in=sku_ids)
+        for sku in skus:
+            cart_skus.append({
+                'id': sku.id,
+                'name': sku.name,
+                'count': cart_dict[sku.id]['count'],
+                'default_image_url': sku.default_image.url
+            })
+
+        return JsonResponse({'code': 0, 'errmsg': 'ok', 'cart_skus': cart_skus})
+
+
 class CartsSelectAllView(View):
     """购物车全选"""
     def put(self, request):
@@ -78,9 +112,8 @@ class CartsView(View):
         except Exception as e:
             return JsonResponse({'code': 400, 'errmsg': 'count有误'})
         # 判断selected是否为bool值
-        if selected:
-            if not isinstance(selected, bool):
-                return JsonResponse({'code': 400, 'errmsg': 'selected有误'})
+        if not isinstance(selected, bool):
+            return JsonResponse({'code': 400, 'errmsg': 'selected有误'})
         # 实现核心逻辑: 登录用户和未登录用户新增购物车
         if request.user.is_authenticated:
             # 如果用户已登录,新增redis购物车
@@ -89,6 +122,7 @@ class CartsView(View):
             redis_conn = get_redis_connection('carts')
             pl = redis_conn.pipeline()
             # 操作hash,增量存储sku_id和count
+            # hincrby(name, key, amount=1) Increment the value of key in hash name by amount
             pl.hincrby('carts_%s' % request.user.id, sku_id, count)
             # 操作set,如果selected为True,需要将sku_id添加到set
             if selected:
@@ -151,7 +185,7 @@ class CartsView(View):
         sku_model_list = SKU.objects.filter(id__in=sku_ids)
         cart_skus = []
         for sku in sku_model_list:
-            cart_dict.append({
+            cart_skus.append({
                 'id': sku.id,
                 'name': sku.name,
                 'default_image_url': sku.default_image.url,
@@ -238,7 +272,9 @@ class CartsView(View):
             # 如果用户已登录,删除redis购物车
             redis_conn = get_redis_connection('carts')
             pl = redis_conn.pipeline()
+            # hdel(name, *keys) delete keys from hash name
             pl.hdel('carts_%s' % request.user.id, sku_id)
+            # srem(name, *values) remove values from set name
             pl.srem('selected_%s' % request.user.id, sku_id)
             pl.execute()
 
@@ -252,8 +288,8 @@ class CartsView(View):
                 # 删除购物车字典中的key,只能删除存在的key,如果删除了不存在的key会抛出异常
                 if sku_id in cart_dict:
                     del cart_dict[sku_id]
-                cookie_cart_str = base64.b64encode(pickle.dumps(cart_dict)).decode()
-                response.set_cookie('carts', cookie_cart_str)
+                    cookie_cart_str = base64.b64encode(pickle.dumps(cart_dict)).decode()
+                    response.set_cookie('carts', cookie_cart_str)
             return response
 
 

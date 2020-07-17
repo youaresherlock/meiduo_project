@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'apps.contents',
     'apps.goods',  # 商品子应用
     'apps.carts',  # 购物车
+    'apps.orders',  # 订单页面
     # 定时任务
     'django_crontab',
     # 全文检索
@@ -304,7 +305,10 @@ HAYSTACK_CONNECTIONS = {
 # 当添加、修改、删除数据时，自动生成索引
 HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.RealtimeSignalProcessor'
 
-
+ALIPAY_APPID = '2016092500589723'
+ALIPAY_DEBUG = True
+ALIPAY_URL = 'https://openapi.alipaydev.com/gateway.do'
+ALIPAY_RETURN_URL = "http://www.meiduo.site:8080/pay_success.html"
 
 
 

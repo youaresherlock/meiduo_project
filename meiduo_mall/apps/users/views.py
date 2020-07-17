@@ -69,7 +69,7 @@ class UserBrowseHistory(LoginRequiredJSONMixin, View):
         pl.lrem('history_%s' % user_id, 0, sku_id)
         # 再存储
         pl.lpush('history_%s' % user_id, sku_id)
-        # 最后截取,只保留5个
+        # 最后截取,只保留5个 不能使用lrange(name, start, end)
         pl.ltrim('history_%s' % user_id, 0, 4)
         # 执行管道
         pl.execute()

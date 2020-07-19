@@ -581,14 +581,14 @@ class RegisterView(View):
             return JsonResponse({'code': 400,
                                       'errmsg': 'allow格式有误'})
         # 从redis取出短信验证码并判断是否过期,然后与用户输入的验证码进行对比
-        # redis_conn = get_redis_connection('verify_code')
-        # sms_code_server = redis_conn.get('sms_%s' % mobile)
-        # if not sms_code_server:
-        #     return JsonResponse({'code': 400,
-        #                          'errmsg': '短信验证码过期'})
-        # if sms_code_client != sms_code_server.decode():
-        #     return JsonResponse({'code': 400,
-        #                          'errmsg': '验证码有误'})
+        redis_conn = get_redis_connection('verify_code')
+        sms_code_server = redis_conn.get('sms_%s' % mobile)
+        if not sms_code_server:
+            return JsonResponse({'code': 400,
+                                 'errmsg': '短信验证码过期'})
+        if sms_code_client != sms_code_server.decode():
+            return JsonResponse({'code': 400,
+                                 'errmsg': '验证码有误'})
         # 实现核心逻辑: 保存注册数据到用户数据表
         try:
             user = User.objects.create_user(username=username,

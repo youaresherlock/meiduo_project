@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'apps.goods',  # 商品子应用
     'apps.carts',  # 购物车
     'apps.orders',  # 订单页面
+    'apps.payment',
     # 定时任务
     'django_crontab',
     # 全文检索

@@ -444,7 +444,7 @@ class LogoutView(View):
 
 class LoginView(View):
     """用户登录
-    GET /login/
+    POST /login/
     """
 
     def post(self, request):
